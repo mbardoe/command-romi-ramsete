@@ -12,6 +12,7 @@ import romi
 from commands.arcadedrive import ArcadeDrive
 from commands.autonomous_distance import AutonomousDistance
 from commands.autonomous_time import AutonomousTime
+from commands.auotonomous_trajectory import AutonomousTrajectory
 
 from subsystems.drivetrain import Drivetrain
 
@@ -71,6 +72,7 @@ class RobotContainer:
             "Auto Routine Distance", AutonomousDistance(self.drivetrain)
         )
         self.chooser.addOption("Auto Routine Time", AutonomousTime(self.drivetrain))
+        self.chooser.addOption("Ramsete Trajectory", AutonomousTrajectory(self.drivetrain))
         wpilib.SmartDashboard.putData(self.chooser)
 
     def getAutonomousCommand(self) -> typing.Optional[commands2.CommandBase]:
