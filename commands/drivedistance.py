@@ -8,17 +8,16 @@ from subsystems.drivetrain import Drivetrain
 
 
 class DriveDistance(commands2.CommandBase):
-    def __init__(self, speed: float, inches: float, drive: Drivetrain) -> None:
+    def __init__(self, speed: float, meters: float, drive: Drivetrain) -> None:
         """Creates a new DriveDistance. This command will drive your your robot for a desired distance at
         a desired speed.
 
         :param speed:  The speed at which the robot will drive
-        :param inches: The number of inches the robot will drive
+        :param meters: The number of meters the robot will drive
         :param drive:  The drivetrain subsystem on which this command will run
         """
         super().__init__()
-
-        self.distance = inches
+        self.distance = meters
         self.speed = speed
         self.drive = drive
         self.addRequirements(drive)
@@ -39,4 +38,5 @@ class DriveDistance(commands2.CommandBase):
     def isFinished(self) -> bool:
         """Returns true when the command should end."""
         # Compare distance travelled from start to desired distance
-        return abs(self.drive.getAverageDistanceInch()) >= self.distance
+
+        return abs(self.drive.getAverageDistanceMeter()) >= self.distance

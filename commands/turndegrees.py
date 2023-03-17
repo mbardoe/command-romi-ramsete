@@ -9,17 +9,17 @@ from subsystems.drivetrain import Drivetrain
 
 
 class TurnDegrees(commands2.CommandBase):
-    def __init__(self, speed: float, degrees: float, drive: Drivetrain) -> None:
+    def __init__(self, speed: float, radians: float, drive: Drivetrain) -> None:
         """Creates a new TurnDegrees. This command will turn your robot for a desired rotation (in
         degrees) and rotational speed.
 
         :param speed:   The speed which the robot will drive. Negative is in reverse.
-        :param degrees: Degrees to turn. Leverages encoders to compare distance.
+        :param radians: Degrees to turn. Leverages encoders to compare distance.
         :param drive:   The drive subsystem on which this command will run
         """
         super().__init__()
 
-        self.degrees = degrees
+        self.radians = radians
         self.speed = speed
         self.drive = drive
         self.addRequirements(drive)
@@ -48,7 +48,7 @@ class TurnDegrees(commands2.CommandBase):
         inchPerDegree = math.pi * 5.551 / 360.0
 
         # Compare distance travelled from start to distance based on degree turn
-        return self._getAverageTurningDistance() >= inchPerDegree * self.degrees
+        return self._getAverageTurningDistance() >= inchPerDegree * self.radians
 
     def _getAverageTurningDistance(self) -> float:
         leftDistance = abs(self.drive.getLeftDistanceInch())

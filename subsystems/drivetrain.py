@@ -8,6 +8,8 @@ import commands2
 import wpilib
 import wpilib.drive
 import romi
+from wpimath.kinematics import DifferentialDriveOdometry, DifferentialDriveWheelSpeeds
+import constants
 
 
 class Drivetrain(commands2.SubsystemBase):
@@ -21,6 +23,7 @@ class Drivetrain(commands2.SubsystemBase):
         # PWM channels 0 and 1 respectively
         self.leftMotor = wpilib.Spark(0)
         self.rightMotor = wpilib.Spark(1)
+        self.rightMotor.setInverted(True)
 
         # The Romi has onboard encoders that are hardcoded
         # to use DIO pins 4/5 and 6/7 for the left and right
@@ -38,11 +41,12 @@ class Drivetrain(commands2.SubsystemBase):
 
         # Use inches as unit for encoder distances
         self.leftEncoder.setDistancePerPulse(
-            (math.pi * self.kWheelDiameterInch) / self.kCountsPerRevolution
+            (math.pi * constants.kWheelDiameterMeter) / self.kCountsPerRevolution
         )
         self.rightEncoder.setDistancePerPulse(
-            (math.pi * self.kWheelDiameterInch) / self.kCountsPerRevolution
+            (math.pi * constants.kWheelDiameterMeter) / self.kCountsPerRevolution
         )
+        self.odometry = DifferentialDriveOdometry(self.gyro.getRotation2d())
         self.resetEncoders()
 
     def arcadeDrive(self, fwd: float, rot: float) -> None:
@@ -52,7 +56,36 @@ class Drivetrain(commands2.SubsystemBase):
         :param fwd: the commanded forward movement
         :param rot: the commanded rotation
         """
-        self.drive.arcadeDrive(fwd, rot)
+        print(fwd, rot)
+        self.drive.arcadeDrive(fwd, -rot)
+
+    def periodic(self):
+        """
+        Called periodically when it can be called. Updates the robot's
+        odometry with sensor data.
+        """
+        self.odometry.update(
+            self.gyro.getRotation2d(),
+            self.leftEncoder.getDistance(),
+            self.rightEncoder.getDistance(),
+        )
+        print(f"{self.odometry.getPose().X()}   {self.odometry.getPose().Y()}   {self.odometry.getPose().rotation()}")
+
+    def getPose(self):
+        return self.odometry.getPose()
+
+    def resetOdometry(self, pose):
+        self.resetEncoders()
+        self.odometry.resetPosition(pose, self.gyro.getRotation2d())
+
+    def getWheelSpeeds(self):
+        speeds = DifferentialDriveWheelSpeeds(self.leftEncoder.getRate(), self.rightEncoder.getRate())
+        return speeds
+
+    def tankDriveVolts(self, leftVolts, rightVolts):
+        self.leftMotor.setVoltage(leftVolts)
+        self.rightMotor.setVoltage(rightVolts)
+        self.drive.feed()
 
     def resetEncoders(self) -> None:
         """Resets the drive encoders to currently read a position of 0."""
@@ -65,15 +98,15 @@ class Drivetrain(commands2.SubsystemBase):
     def getRightEncoderCount(self) -> int:
         return self.rightEncoder.get()
 
-    def getLeftDistanceInch(self) -> float:
+    def getLeftDistanceMeter(self) -> float:
         return self.leftEncoder.getDistance()
 
-    def getRightDistanceInch(self) -> float:
+    def getRightDistanceMeter(self) -> float:
         return self.rightEncoder.getDistance()
 
-    def getAverageDistanceInch(self) -> float:
+    def getAverageDistanceMeter(self) -> float:
         """Gets the average distance of the TWO encoders."""
-        return (self.getLeftDistanceInch() + self.getRightDistanceInch()) / 2.0
+        return (self.getLeftDistanceMeter() + self.getRightDistanceMeter()) / 2.0
 
     def getAccelX(self) -> float:
         """The acceleration in the X-axis.
